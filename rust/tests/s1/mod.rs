@@ -5,9 +5,12 @@ use rustc_serialize::base64;
 
 // Structs
 use std::cmp::Ordering;
+use std::fs::File;
+use std::io::BufReader;
 
 // Traits
 use matasano::crypt::Crypt;
+use std::io::BufRead;
 use rustc_serialize::hex::FromHex;
 use rustc_serialize::base64::ToBase64;
 
@@ -69,4 +72,21 @@ fn c3() {
     let plaintext = single_character_xor_try_decrypt(crypttext).guess;
 
     assert_eq!(plaintext, include_str!("resources/c3-out"));
+}
+
+#[test]
+fn c4() {
+    let f = File::open("../resources/s1/c4-in.txt").unwrap();
+    let f = BufReader::new(f);
+
+    let out = f.lines()
+        .map(|rs| single_character_xor_try_decrypt(rs.unwrap().from_hex().unwrap()))
+        .fold(DecryptionAttempt::default(), |best_so_far, x| {
+            match x.score.partial_cmp(&best_so_far.score) {
+                Some(Ordering::Less) => x,
+                _ => best_so_far
+            }
+        }).guess;
+
+    assert_eq!(out, include_str!("resources/c4-out.txt"));
 }
