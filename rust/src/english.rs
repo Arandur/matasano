@@ -1,48 +1,54 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io;
-use std::io::Read;
 
-pub struct FreqCount {
-    counts: HashMap<char, u64>,
-    total: u64
+fn canonical_english_freq() -> HashMap<char, f64> {
+    let mut freqs = HashMap::with_capacity(27);
+    
+    freqs.insert(' ', 1.846E-1);
+    freqs.insert('a', 6.478E-2);
+    freqs.insert('b', 1.248E-2);
+    freqs.insert('c', 2.102E-2);
+    freqs.insert('d', 3.474E-2);
+    freqs.insert('e', 1.030E-1);
+    freqs.insert('f', 1.933E-2);
+    freqs.insert('g', 1.596E-2);
+    freqs.insert('h', 5.098E-2);
+    freqs.insert('i', 5.641E-2);
+    freqs.insert('j', 1.176E-3);
+    freqs.insert('k', 5.768E-3);
+    freqs.insert('l', 3.290E-2);
+    freqs.insert('m', 2.068E-2);
+    freqs.insert('n', 5.641E-2);
+    freqs.insert('o', 6.196E-2);
+    freqs.insert('p', 1.446E-2);
+    freqs.insert('q', 8.689E-4);
+    freqs.insert('r', 4.893E-2);
+    freqs.insert('s', 5.209E-2);
+    freqs.insert('t', 7.477E-2);
+    freqs.insert('u', 2.294E-2);
+    freqs.insert('v', 7.979E-3);
+    freqs.insert('w', 1.808E-2);
+    freqs.insert('x', 1.320E-3);
+    freqs.insert('y', 1.565E-2);
+    freqs.insert('z', 5.171E-4);
+
+    freqs
 }
 
-impl FreqCount {
-    pub fn from_file(mut file: File) -> io::Result<FreqCount> {
-        let mut file_contents = String::new();
+pub fn english_score(string: &str) -> f64 {
+    let mut this_freq = HashMap::new();
 
-        try!(file.read_to_string(&mut file_contents));
-
-        Ok(FreqCount::from_string(&*file_contents))
+    for c in string.to_lowercase().chars() {
+        *this_freq.entry(c).or_insert(0) += 1;
     }
 
-    pub fn get_distribution(&self) -> HashMap<char, f64> {
-        self.counts.iter()
-            .map(|(&k, &v)| (k, (v as f64) / (self.total as f64)))
-            .collect()
-    }
+    let this_freq: HashMap<char, f64> = this_freq.into_iter()
+        .map(|(k, v)| (k, v as f64 / string.len() as f64))
+        .collect();
 
-    pub fn from_string(string: &str) -> FreqCount {
-        let mut counts = HashMap::new();
+    let known_freq = canonical_english_freq();
 
-        for c in string.chars() {
-            *counts.entry(c).or_insert(0) += 1;
-        }
-
-        FreqCount { counts: counts, total: string.len() as u64 }
-    }
-}
-
-pub fn english_score(string: &str) -> io::Result<f64> {
-    let known_freq = try!(File::open("en.txt")
-                          .and_then(FreqCount::from_file));
-    let this_freq = FreqCount::from_string(string);
-
-    Ok(known_freq.counts.iter()
-       .map(|(k, v)| (v, this_freq.counts.get(k).cloned().unwrap_or(0)))
-       .map(|(&v1, v2)| (v1 as f64 / known_freq.total as f64, 
-                         v2 as f64 / this_freq.total as f64))
+    known_freq.iter()
+       .map(|(k, v)| (v, this_freq.get(k).cloned().unwrap_or(0.0)))
        .map(|(v1, v2)| (v1 - v2).abs())
-       .fold(0.0f64, |acc, x| acc + x))
+       .fold(0.0, |acc, x| acc + x)
 }

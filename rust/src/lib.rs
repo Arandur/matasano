@@ -1,5 +1,4 @@
-#[macro_use] extern crate itertools;
+extern crate rustc_serialize;
 
-pub mod bytestring;
 pub mod crypt;
 pub mod english;

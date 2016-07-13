@@ -4,4 +4,4 @@ version = "0.1.0"
 authors = ["J. Anthony Sterrett, Jr. <jasterrett@gmail.com>"]
 
 [dependencies]
-itertools = { path = '/usr/local/src/rust-itertools' }
+rustc-serialize = { path = "/usr/local/src/rustc-serialize" }
