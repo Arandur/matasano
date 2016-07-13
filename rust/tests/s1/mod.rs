@@ -42,12 +42,7 @@ fn single_character_xor_try_decrypt(bytes: Vec<u8>) -> DecryptionAttempt {
 #[test]
 fn c1() {
     assert_eq!(
-        "49276d206b696c6c\
-         696e6720796f7572\
-         20627261696e206c\
-         696b65206120706f\
-         69736f6e6f757320\
-         6d757368726f6f6d".from_hex()
+        include_str!("resources/c1-hex").from_hex()
             .unwrap()
             .as_slice()
             .to_base64(base64::Config { 
@@ -55,30 +50,23 @@ fn c1() {
                 newline: base64::Newline::LF,
                 pad: true,
                 line_length: None}), 
-        "SSdtIGtpbGxpbmcg\
-         eW91ciBicmFpbiBs\
-         aWtlIGEgcG9pc29u\
-         b3VzIG11c2hyb29t".to_owned())
+        include_str!("resources/c1-base64").to_owned())
 }
 
 #[test]
 fn c2() {
-    let b1     = "1c0111001f010100061a024b53535009181c".from_hex().unwrap();
-    let b2     = "686974207468652062756c6c277320657965".from_hex().unwrap();
-    let result = "746865206b696420646f6e277420706c6179".from_hex().unwrap();
+    let b1  = include_str!("resources/c2-in").from_hex().unwrap();
+    let b2  = include_str!("resources/c2-key").from_hex().unwrap();
+    let out = include_str!("resources/c2-out").from_hex().unwrap();
 
-    assert_eq!(b1.xor_encrypt_with(&b2), result);
+    assert_eq!(b1.xor_encrypt_with(&b2), out);
 }
 
 #[test]
 fn c3() {
-    let crypttext = "1b37373331363f78\
-                     151b7f2b78343133\
-                     3d78397828372d36\
-                     3c78373e783a393b\
-                     3736".from_hex().unwrap();
+    let crypttext = include_str!("resources/c3-in").from_hex().unwrap();
 
     let plaintext = single_character_xor_try_decrypt(crypttext).guess;
 
-    assert_eq!(plaintext, "Cooking MC's like a pound of bacon");
+    assert_eq!(plaintext, include_str!("resources/c3-out"));
 }
