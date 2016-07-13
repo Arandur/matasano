@@ -11,7 +11,7 @@ use std::io::BufReader;
 // Traits
 use matasano::crypt::Crypt;
 use std::io::BufRead;
-use rustc_serialize::hex::FromHex;
+use rustc_serialize::hex::{FromHex, ToHex};
 use rustc_serialize::base64::ToBase64;
 
 struct DecryptionAttempt {
@@ -44,25 +44,26 @@ fn single_character_xor_try_decrypt(bytes: Vec<u8>) -> DecryptionAttempt {
 
 #[test]
 fn c1() {
-    assert_eq!(
-        include_str!("resources/c1-hex").from_hex()
-            .unwrap()
-            .as_slice()
-            .to_base64(base64::Config { 
-                char_set: base64::CharacterSet::Standard,
-                newline: base64::Newline::LF,
-                pad: true,
-                line_length: None}), 
-        include_str!("resources/c1-base64").to_owned())
+    let b1 = include_str!("resources/c1-hex").trim().from_hex()
+        .unwrap()
+        .as_slice()
+        .to_base64(base64::Config { 
+            char_set: base64::CharacterSet::Standard,
+            newline: base64::Newline::LF,
+            pad: true,
+            line_length: None});
+    let b2 = include_str!("resources/c1-base64");
+
+    assert_eq!(b1, b2.trim());
 }
 
 #[test]
 fn c2() {
-    let b1  = include_str!("resources/c2-in").from_hex().unwrap();
-    let b2  = include_str!("resources/c2-key").from_hex().unwrap();
-    let out = include_str!("resources/c2-out").from_hex().unwrap();
+    let b1  = include_str!("resources/c2-in").trim().from_hex().unwrap();
+    let b2  = include_str!("resources/c2-key").trim().from_hex().unwrap();
+    let out = include_str!("resources/c2-out").trim();
 
-    assert_eq!(b1.xor_encrypt_with(&b2), out);
+    assert_eq!(b1.xor_encrypt_with(&b2).as_slice().to_hex(), out);
 }
 
 #[test]
@@ -71,12 +72,12 @@ fn c3() {
 
     let plaintext = single_character_xor_try_decrypt(crypttext).guess;
 
-    assert_eq!(plaintext, include_str!("resources/c3-out"));
+    assert_eq!(plaintext.trim(), include_str!("resources/c3-out").trim());
 }
 
 #[test]
 fn c4() {
-    let f = File::open("../resources/s1/c4-in.txt").unwrap();
+    let f = File::open("../resources/s1/c4-in").unwrap();
     let f = BufReader::new(f);
 
     let out = f.lines()
@@ -88,5 +89,5 @@ fn c4() {
             }
         }).guess;
 
-    assert_eq!(out, include_str!("resources/c4-out.txt"));
+    assert_eq!(out.trim(), include_str!("resources/c4-out").trim());
 }
